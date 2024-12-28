@@ -44,3 +44,35 @@ git push -u origin main
 pnpm deploy 
 
 chmod +x deploy.sh 
+
+# Configure Git
+git config user.name "dFi0racle"
+git config user.email "PCW@MANNLIFAMILYOFFICE.ORG"
+
+# Initialize repository (if not already initialized)
+git init
+
+# Remove existing remote if it exists
+git remote remove origin
+
+# Verify remote is removed
+git remote -v
+
+# Add the new remote
+git remote add origin https://github.com/Defi-Oracle-Tooling/perpetual-leverage-tool.git
+
+# Verify new remote is added correctly
+git remote -v
+
+# Stage all changes
+git add .
+
+# Commit changes
+git commit -m "Initial setup with calculator functionality"
+
+# Push to the new remote (use -f only if you're sure you want to force push)
+git push -u origin main
+
+# Make deploy script executable and run it
+chmod +x deploy.sh
+./deploy.sh https://github.com/Defi-Oracle-Tooling/perpetual-leverage-tool.git 
