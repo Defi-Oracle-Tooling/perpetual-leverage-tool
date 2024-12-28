@@ -7,20 +7,41 @@ import { withPerformanceTracking } from '../utils/performance';
 
 const Calculator: React.FC = () => {
   const [display, setDisplay] = useState<string>('0');
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
 
   const handleNumberClick = useCallback((number: string) => {
+    setError(null);
+    // Prevent multiple decimal points
+    if (number === '.' && display.includes('.')) return;
+    // Prevent leading zeros
     setDisplay(prev => prev === '0' ? number : prev + number);
-  }, []);
+  }, [display]);
 
   const handleOperatorClick = useCallback((operator: string) => {
-    setDisplay(prev => prev + operator);
-  }, []);
+    setError(null);
+    // Prevent consecutive operators
+    const lastChar = display.slice(-1);
+    if (['+', '-', '*', '/'].includes(lastChar)) {
+      setDisplay(prev => prev.slice(0, -1) + operator);
+    } else {
+      setDisplay(prev => prev + operator);
+    }
+  }, [display]);
 
   const calculateResult = useCallback(() => {
     try {
+      // Validate expression before calculation
+      if (!/^[0-9+\-*/.() ]+$/.test(display)) {
+        throw new Error('Invalid characters in expression');
+      }
+
       const result = calculateExpression(display);
       
+      if (!Number.isFinite(result)) {
+        throw new Error('Invalid calculation result');
+      }
+
       dispatch(addCalculation({
         expression: display,
         result: result.toString(),
@@ -28,8 +49,10 @@ const Calculator: React.FC = () => {
       }));
 
       setDisplay(result.toString());
+      setError(null);
     } catch (error) {
-      setDisplay('Error');
+      setError(error instanceof Error ? error.message : 'Calculation error');
+      setDisplay('0');
     }
   }, [display, dispatch]);
 
@@ -57,12 +80,14 @@ const Calculator: React.FC = () => {
 
   return (
     <CalculatorContainer>
-      <Display>{display}</Display>
+      <Display data-testid="display">{display}</Display>
+      {error && <div data-testid="error" className="error">{error}</div>}
       <ButtonGrid>
         {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+'].map(
           (btn) => (
             <Button
               key={btn}
+              data-testid={`button-${btn}`}
               onClick={() => {
                 if (btn === '=') {
                   calculateResult();

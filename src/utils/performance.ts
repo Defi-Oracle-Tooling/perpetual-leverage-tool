@@ -1,19 +1,49 @@
-export const measurePerformance = (name: string, fn: () => void): void => {
-  const start = performance.now();
-  fn();
-  const end = performance.now();
-  console.log(`${name} took ${end - start}ms`);
-};
+import { performance, PerformanceObserver } from 'perf_hooks';
 
-export const withPerformanceTracking = <T extends (...args: any[]) => any>(
-  name: string,
-  fn: T
-): T => {
-  return ((...args: Parameters<T>): ReturnType<T> => {
-    const start = performance.now();
-    const result = fn(...args);
-    const end = performance.now();
-    console.log(`${name} took ${end - start}ms`);
-    return result;
-  }) as T;
-}; 
+interface PerformanceMetrics {
+  componentName: string;
+  renderTime: number;
+  timestamp: number;
+}
+
+const metrics: PerformanceMetrics[] = [];
+
+// Set up performance observer
+const obs = new PerformanceObserver((list) => {
+  const entries = list.getEntries();
+  entries.forEach((entry) => {
+    metrics.push({
+      componentName: entry.name,
+      renderTime: entry.duration,
+      timestamp: Date.now(),
+    });
+  });
+});
+
+obs.observe({ entryTypes: ['measure'] });
+
+// HOC for tracking component performance
+export function withPerformanceTracking<P extends object>(
+  componentName: string,
+  WrappedComponent: React.ComponentType<P>
+): React.FC<P> {
+  return function PerformanceTrackedComponent(props: P) {
+    const markStart = `${componentName}-render-start`;
+    const markEnd = `${componentName}-render-end`;
+    const measureName = `${componentName}-render-measure`;
+
+    React.useEffect(() => {
+      performance.mark(markStart);
+      
+      return () => {
+        performance.mark(markEnd);
+        performance.measure(measureName, markStart, markEnd);
+      };
+    });
+
+    return <WrappedComponent {...props} />;
+  };
+}
+
+// Utility to get performance metrics
+export const getPerformanceMetrics = () => metrics; 
