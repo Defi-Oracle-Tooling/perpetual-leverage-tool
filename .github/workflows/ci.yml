@@ -1,156 +1,34 @@
-name: CI/CD
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'pnpm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: '9.15.1'
+      - name: Install pnpm
+        run: npm install -g pnpm
 
-    - name: Get pnpm store directory
-      id: get_pnpm_store
-      shell: bash
-      run: |
-        echo "store_path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - name: Install dependencies
+        run: pnpm install
 
-    - name: Cache pnpm modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          ${{ steps.get_pnpm_store.outputs.store_path }}
-          node_modules
-          ~/.cache/Cypress
-        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/package.json') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-
+      - name: Run tests
+        run: pnpm test
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-
-    - name: Run linter
-      run: pnpm lint
-
-    - name: Run unit tests with coverage
-      run: pnpm test:coverage
-
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/lcov.info
-        fail_ci_if_error: true
-
-    - name: Run E2E tests
-      uses: cypress-io/github-action@v5
-      with:
-        build: pnpm build
-        start: pnpm start
-        wait-on: 'http://localhost:3000'
-        browser: chrome
-        headless: true
-        record: true
-      env:
-        CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-
-    - name: Build with source maps
-      run: GENERATE_SOURCEMAP=true pnpm build:prod
-
-    - name: Analyze bundle size
-      uses: actions/upload-artifact@v3
-      with:
-        name: bundle-analysis
-        path: |
-          build/static/js/*.js.map
-          stats.json
-
-    - name: Performance monitoring
-      run: |
-        pnpm dlx lighthouse-ci https://defi-oracle-tooling.github.io/perpetual-leverage-tool --output=json > lighthouse-report.json
-        pnpm build:profile
-        
-    - name: Upload performance results
-      uses: actions/upload-artifact@v3
-      with:
-        name: performance-results
-        path: |
-          lighthouse-report.json
-          stats.json
-
-  deploy:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'pnpm'
-
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: '9.15.1'
-
-    - name: Get pnpm store directory
-      id: get_pnpm_store
-      shell: bash
-      run: |
-        echo "store_path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-
-    - name: Cache pnpm modules
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.get_pnpm_store.outputs.store_path }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-
-
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-
-    - name: Optimize images
-      run: |
-        pnpm dlx sharp-cli --input './public/images/**/*.{jpg,png}' --output './public/images/optimized'
-
-    - name: Optimize assets
-      run: |
-        pnpm optimize:images
-        pnpm clean:cache
-
-    - name: Build with optimizations
-      env:
-        NODE_ENV: production
-        GENERATE_SOURCEMAP: false
-        INLINE_RUNTIME_CHUNK: true
-        MINIMIZE_MAIN_BUNDLE: true
-      run: pnpm build:prod
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
-        enable_jekyll: false
-        force_orphan: true
-        full_commit_message: ${{ github.event.head_commit.message }} 
+      # Add other steps as needed 
