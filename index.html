@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perpetual Leverage Tool</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <div id="navbar"></div>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <!-- Mode Toggle -->
+        <div class="d-flex justify-content-center mb-3">
+            <button id="modeToggle" class="btn btn-secondary">Switch to Expert Mode</button>
+        </div>
+
+        <!-- Calculator -->
+        <div id="calculator" class="card p-4">
+            <h1 class="text-center mb-4">Leverage Strategy Calculator</h1>
+            <form>
+                <div class="mb-3">
+                    <label for="walletBalance" class="form-label">Starting Wallet Balance ($):</label>
+                    <input type="number" class="form-control futuristic-input" id="walletBalance" placeholder="Enter your starting balance">
+                </div>
+                <div class="mb-3">
+                    <label for="desiredOutput" class="form-label">Desired Output ($):</label>
+                    <input type="number" class="form-control futuristic-input" id="desiredOutput" placeholder="Enter your desired output">
+                </div>
+                <button type="button" class="btn btn-primary w-100" onclick="calculateStrategy()">Calculate Strategy</button>
+            </form>
+            <div id="output" class="mt-4"></div>
+        </div>
+
+        <!-- Visualization -->
+        <div class="card mt-5 p-4">
+            <h3>Visualize Your Strategy</h3>
+            <button id="toggleChart" class="btn btn-primary mb-3">Toggle Chart</button>
+            <canvas id="strategyChart" class="toggle-section"></canvas>
+        </div>
+
+        <!-- About -->
+        <div id="about" class="card mt-5 p-4">
+            <h3>About This Tool</h3>
+            <p>Leverage advanced perpetual trading strategies with intuitive calculations and dynamic visualizations.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <p>&copy; 2024 Perpetual Leverage Tool | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+npm install -g pnpm
+pnpm create react-app calculator-app
+cd calculator-app
+pnpm install @reduxjs/toolkit react-redux styled-components recharts 
+pnpm install 
+pnpm start 
+pnpm update-interactive 
+
+# First update non-breaking changes
+pnpm update --interactive --latest
+
+# Then specifically handle React ecosystem updates
+pnpm add react@latest react-dom@latest
+pnpm add -D @types/react@latest @types/react-dom@latest
+
+# Update testing libraries
+pnpm add -D @testing-library/react@latest @testing-library/jest-dom@latest @testing-library/user-event@latest
+
+# Update Redux toolkit and React Redux
+pnpm add @reduxjs/toolkit@latest react-redux@latest 
+
+pnpm add -D eslint prettier eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser 
+
+# Run tests
+pnpm test
+
+# Run linting
+pnpm lint
+
+# Format code
+pnpm format 
+
+pnpm add -D gh-pages 
+
+# First commit your changes
+git add .
+git commit -m "Setup deployment configuration"
+
+# Create a new repository on GitHub if you haven't already
+git remote add origin https://github.com/yourusername/calculator-app.git
+git push -u origin main
+
+# Deploy
+pnpm deploy 
+
+chmod +x deploy.sh 
